@@ -7,7 +7,6 @@ import { UserContext } from '../Context/context';
 const UserPosts = () => {
   const [posts, setPostList] = useState([]);
   const { user } = useContext(UserContext);
-
   useEffect(() => {
     fetchData();
   }, [user]);
@@ -22,7 +21,7 @@ const UserPosts = () => {
         const postList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   
         setPostList(postList); // Update state with all posts for the user
-        console.log(postList); // Log the fetched posts to verify
+        console.log("The post list is",postList); // Log the fetched posts to verify
       });
   
       return () => unsubscribe(); // Cleanup on unmount to prevent memory leaks
@@ -38,7 +37,7 @@ const UserPosts = () => {
         <p>No posts available</p>
       ) : (
         posts.map(post => (
-          <UserPost key={post.id} id={post.id} description={post.description} image={post.image} userImage={post.userImage}/>
+          <UserPost key={post.id} id={post.id} description={post.description} image={post.image} userImage={post.userImage} username={post.name} createdat={post.createdAt}/>
         ))
       )}
     </div>

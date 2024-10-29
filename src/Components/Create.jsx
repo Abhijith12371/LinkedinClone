@@ -4,6 +4,7 @@ import { BsPersonWorkspace } from "react-icons/bs";
 import { SiLibreofficewriter } from "react-icons/si";
 import { db, storage } from "../../firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { v4 as uuidv4 } from 'uuid';
 import toast from "react-hot-toast";
 import { collection } from "firebase/firestore";
 import { UserContext } from "../Context/context";
@@ -54,13 +55,15 @@ const Create = (props) => {
       const downloadURL = await getDownloadURL(storageRef);
   
       // Add a new post document with a generated ID in Firestore
-      const postRef = doc(db, "posts",user.uid); // Auto-generated document ID
+      const postRef = doc(db, "posts",uuidv4()); // Auto-generated document ID
       await setDoc(postRef, {
         image: downloadURL,
         description: description,
         createdAt: new Date(),
         userImage:profile.image,
         userId: user.uid, // Include the user ID
+        name:profile.username,
+        postId:uuidv4()
       });
   
       toast.success("Post created successfully.");

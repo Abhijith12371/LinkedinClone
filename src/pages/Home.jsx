@@ -19,7 +19,7 @@ const Home = () => {
           userName={profile ? profile.username : "Loading..."} // Use profile data
           headline={profile ? profile.headline : "Loading..."} 
           location={profile ? profile.location : "Loading..."} 
-          bio={profile ? profile.bio : "Loading..."} 
+          bio={profile ? profile.description : "Loading..."} 
           profilePic={profile ? profile.image : "defaultProfilePic.jpg"} // Default image
         />
       </div>
@@ -40,6 +40,8 @@ const Home = () => {
                 description={userposts.description || "No description available"} 
                 image={userposts.image || "defaultImage.jpg"} 
                 userImage={userposts.userImage}
+                username={userposts.name}
+                createdat={userposts.createdAt}
               />
             ))
           )}

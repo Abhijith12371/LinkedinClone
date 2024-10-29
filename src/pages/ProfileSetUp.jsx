@@ -10,6 +10,8 @@ const ProfileSetUp = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [name, setName] = useState("");
   const [desc,setDesc]=useState("")
+  const [headline,setHeadline]=useState("")
+  const [location,setLocation]=useState("")
   const {user} = useContext(UserContext);
   const navigate=useNavigate()
   const handleFileChange = async (e) => {
@@ -31,6 +33,8 @@ const ProfileSetUp = () => {
         username: name,
         image: downloadURL,
         description:desc,
+        headline:headline,
+        location:location,
         id:user.uid
       });
 
@@ -63,9 +67,25 @@ const ProfileSetUp = () => {
           />
           <input
             type="text"
-            placeholder="Enter your Description"
+            placeholder="Enter your Bio"
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
+            className="border border-gray-300 rounded-lg p-3 mb-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Enter your Headline"
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+            className="border border-gray-300 rounded-lg p-3 mb-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Enter your location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
             className="border border-gray-300 rounded-lg p-3 mb-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
             required
           />
