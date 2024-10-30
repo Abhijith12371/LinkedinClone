@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { UserContext } from "../Context/context";
 
 const JobList = () => {
-  const { jobs, error } = useContext(UserContext); // Access jobs data and error from context
+  const { jobs, error,profile} = useContext(UserContext); // Access jobs data and error from context
 
   if (error.post) {
     return <p className="text-red-500">{error.post}</p>; // Display error if fetching jobs fails

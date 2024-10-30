@@ -3,15 +3,17 @@ import { FaUserCircle, FaThumbsUp, FaCommentAlt, FaShare, FaPaperPlane } from "r
 import { db } from "../../firebase";
 import { UserContext } from "../Context/context";
 import toast from "react-hot-toast";
-import { setDoc, doc, getDoc } from "firebase/firestore";
+import { setDoc, doc, getDoc, addDoc, collection } from "firebase/firestore";
+import { onSnapshot } from "firebase/firestore";
 
 const UserPost = (props) => {
   const [like, setLike] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { user } = useContext(UserContext);
-  console.log("Timestamp data:", props.createdat);
+  const [commentText, setCommentText] = useState("");
+  const [comments, setComments] = useState([]);
+  const { user,profile } = useContext(UserContext);
 
-  // Helper function to format Firestore timestamp
+  // Format Firestore timestamp
   const formatTimestamp = (timestamp) => {
     if (timestamp && timestamp.seconds) {
       return new Date(timestamp.seconds * 1000).toLocaleDateString();
@@ -19,9 +21,9 @@ const UserPost = (props) => {
     return "Just now";
   };
 
-  // Handle like button click
+  // Handle like button
   async function handleLike() {
-    if (loading) return; // Prevent multiple clicks while loading
+    if (loading) return;
     setLoading(true);
 
     const updatedLikeState = !like;
@@ -57,9 +59,39 @@ const UserPost = (props) => {
         console.error("Error fetching like data:", err);
       }
     };
-    
+
     fetchLikedData();
   }, [user, props.id]);
+
+  // Fetch comments for the post
+  useEffect(() => {
+    const commentsCollection = collection(db, "posts", props.id, "comments");
+    const unsubscribe = onSnapshot(commentsCollection, (snapshot) => {
+      const fetchedComments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setComments(fetchedComments);
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+  }, [props.id]);
+
+  // Add a comment
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return;
+    try {
+      const newComment = {
+        text: commentText,
+        userId: user.uid,
+        username: profile.username || "Anonymous",
+        createdAt: new Date(),
+      };
+      await addDoc(collection(db, "posts", props.id, "comments"), newComment);
+      setCommentText(""); // Clear the input field
+      toast.success("Comment added!");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      toast.error("Could not add comment.");
+    }
+  };
 
   return (
     <div className="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg shadow-md p-4 mt-5 mb-6">
@@ -118,6 +150,35 @@ const UserPost = (props) => {
           <FaPaperPlane className="mr-2" />
           Send
         </button>
+      </div>
+
+      {/* Comment Section */}
+      <div className="mt-4">
+        <h4 className="font-bold mb-2">Comments:</h4>
+        {comments.length > 0 ? (
+          comments.map((comment) => (
+            <div key={comment.id} className="mb-2">
+              <strong>{comment.username}:</strong> {comment.text}
+            </div>
+          ))
+        ) : (
+          <p>No comments yet.</p>
+        )}
+        <div className="flex mt-2">
+          <input
+            type="text"
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="Add a comment..."
+            className="flex-1 p-2 border border-gray-300 rounded-lg"
+          />
+          <button
+            onClick={handleAddComment}
+            className="ml-2 px-3 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            Post
+          </button>
+        </div>
       </div>
     </div>
   );

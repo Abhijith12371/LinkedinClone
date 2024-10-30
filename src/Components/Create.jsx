@@ -49,19 +49,19 @@ const Create = (props) => {
   };
 
   const handleUploadJob = async () => {
-    if (!jobData.title || !jobData.company || !jobData.location || !jobData.description || !jobData.logo) {
+    if (!jobData.title || !jobData.company || !jobData.location || !jobData.description) {
       toast.error("Please fill out all job fields.");
       return;
     }
     try {
-      const storageRef = ref(storage, `job-logos/${user.uid}/${Date.now()}`);
-      await uploadString(storageRef, jobData.logo, 'data_url');
-      const logoURL = await getDownloadURL(storageRef);
+      // const storageRef = ref(storage, `job-logos/${user.uid}/${Date.now()}`);
+      // await uploadString(storageRef, jobData.logo, 'data_url');
+      // const logoURL = await getDownloadURL(storageRef);
 
       const jobRef = doc(db, "jobs", uuidv4());
       await setDoc(jobRef, {
         ...jobData,
-        logo: logoURL,
+        logo: profile.image,
         userId: user.uid,
         createdAt: new Date(),
       });
@@ -114,13 +114,13 @@ const Create = (props) => {
               className="w-full mb-2 p-2 border rounded"
             />
             <label htmlFor="job-logo" className="block mb-2">Upload Company Logo:</label>
-            <input
+            {/* <input
               type="file"
               id="job-logo"
               accept="image/*"
               onChange={handleJobFileChange}
               className="mb-4"
-            />
+            /> */}
             <button
               onClick={handleUploadJob}
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
