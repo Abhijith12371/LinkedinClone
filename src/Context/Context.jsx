@@ -8,8 +8,9 @@ const UserContext = createContext();
 const Context = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [post, setPostData] = useState([]); // Ensuring posts is an array
-  const [error, setError] = useState({ profile: null, post: null });
+  const [post, setPostData] = useState([]); // Posts data
+  const [jobs, setJobsData] = useState([]); // Jobs data
+  const [error, setError] = useState({ profile: null, post: null, jobs: null });
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -18,7 +19,8 @@ const Context = ({ children }) => {
       } else {
         setUser(null);
         setProfile(null);
-        setPostData([]); // Clear posts when user logs out
+        setPostData([]);
+        setJobsData([]);
       }
     });
 
@@ -49,16 +51,14 @@ const Context = ({ children }) => {
     return unsubscribeProfile;
   };
 
-  const fetchData = (uid) => {
-    const postCollection = collection(db, "posts"); // Reference to the posts collection
+  const fetchData = () => {
+    const postCollection = collection(db, "posts");
 
     const unsubscribePosts = onSnapshot(
       postCollection,
       (snapshot) => {
         const postList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-        setPostData(postList); // Update posts state with fetched data
-        console.log(postList); // Log the fetched posts to verify
+        setPostData(postList);
       },
       (error) => {
         console.error("Error fetching posts:", error);
@@ -69,22 +69,45 @@ const Context = ({ children }) => {
     return unsubscribePosts;
   };
 
+  const fetchJobs = () => {
+    const jobsCollection = collection(db, "jobs"); // Reference the jobs collection
+  
+    const unsubscribeJobs = onSnapshot(
+      jobsCollection,
+      (snapshot) => {
+        const jobsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  
+        setJobsData(jobsList); // Correctly update jobs state
+        console.log(jobsList); // Log the fetched jobs to verify
+      },
+      (error) => {
+        console.error("Error fetching jobs:", error);
+        setError((prev) => ({ ...prev, jobs: "Error fetching jobs data." })); // Update error key to jobs
+      }
+    );
+  
+    return unsubscribeJobs;
+  };
+  
+
   useEffect(() => {
-    let unsubscribeProfile, unsubscribePosts;
+    let unsubscribeProfile, unsubscribePosts, unsubscribeJobs;
 
     if (user) {
       unsubscribeProfile = fetchProfile(user.uid);
-      unsubscribePosts = fetchData(user.uid);
+      unsubscribePosts = fetchData();
+      unsubscribeJobs = fetchJobs(); // Fetch jobs data
     }
 
     return () => {
       unsubscribeProfile && unsubscribeProfile();
       unsubscribePosts && unsubscribePosts();
+      unsubscribeJobs && unsubscribeJobs();
     };
   }, [user]);
 
   return (
-    <UserContext.Provider value={{ user, profile, post, error }}>
+    <UserContext.Provider value={{ user, profile, post, jobs, error }}>
       {children}
     </UserContext.Provider>
   );

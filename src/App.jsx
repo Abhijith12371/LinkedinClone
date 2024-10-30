@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import Form from "./Components/Form";
 import { Toaster } from "react-hot-toast";
 import { Routes, Router, Route } from "react-router-dom";
@@ -9,14 +9,20 @@ import JobList from "./Components/Jobs";
 // import MediaUpload from "./Compoenents/Media";
 import Messaging from "./Components/Messaging";
 import ProfileSetUp from "./pages/ProfileSetUp";
+import { UserContext } from "./Context/context";
 const App = () => {
+  const {user}=useContext(UserContext)
+  
   return (
     <div>
       {/* <MediaUpload/> */}
       <Toaster />
       <Nav />
       <Routes>
-        <Route path="/" element={<Form />} />
+        {
+          !user ? <Route path="/" element={<Form />} />:"" 
+        }
+
         <Route path="/home" element={<Home/>}/>
         <Route path="/posts" element={<UserPosts/>}/>
         <Route path="/jobs" element={<JobList/>}/>

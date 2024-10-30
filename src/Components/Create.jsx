@@ -6,14 +6,21 @@ import { db, storage } from "../../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import toast from "react-hot-toast";
-import { collection } from "firebase/firestore";
 import { UserContext } from "../Context/context";
-import { ref, uploadString, getDownloadURL, uploadBytes } from "firebase/storage"; // Import getDownloadURL
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 const Create = (props) => {
-  const {user,profile} = useContext(UserContext);
+  const { user, profile } = useContext(UserContext);
   const [selectedImage, setSelectedImage] = useState(null);
   const [description, setDescription] = useState("");
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [jobData, setJobData] = useState({
+    title: "",
+    company: "",
+    location: "",
+    description: "",
+    logo: null,
+  });
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -26,68 +33,113 @@ const Create = (props) => {
     }
   };
 
-  const handleDescriptionChange = (e) => {
-    setDescription(e.target.value);
+  const handleJobFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setJobData({ ...jobData, logo: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    console.log("this is the user id you are looking for ",user.uid)
-  
-    if (!selectedImage || !description) {
-      toast.error("Please provide both an image and a description.");
+  const handleJobInputChange = (e) => {
+    setJobData({ ...jobData, [e.target.name]: e.target.value });
+  };
+
+  const handleUploadJob = async () => {
+    if (!jobData.title || !jobData.company || !jobData.location || !jobData.description || !jobData.logo) {
+      toast.error("Please fill out all job fields.");
       return;
     }
-  
-    if (!user || !user.uid) {
-      toast.error("User not logged in. Please log in to upload.");
-      return;
-    }
-  
-    const storageRef = ref(storage, `images/${user.uid}/${Date.now()}`); // Unique path for each image
-  
     try {
-      // Upload the image string to Firebase Storage
-      await uploadString(storageRef, selectedImage, 'data_url');
-      toast.success("Image uploaded successfully.");
-  
-      // Retrieve the download URL
-      const downloadURL = await getDownloadURL(storageRef);
-  
-      // Add a new post document with a generated ID in Firestore
-      const postRef = doc(db, "posts",uuidv4()); // Auto-generated document ID
-      await setDoc(postRef, {
-        image: downloadURL,
-        description: description,
+      const storageRef = ref(storage, `job-logos/${user.uid}/${Date.now()}`);
+      await uploadString(storageRef, jobData.logo, 'data_url');
+      const logoURL = await getDownloadURL(storageRef);
+
+      const jobRef = doc(db, "jobs", uuidv4());
+      await setDoc(jobRef, {
+        ...jobData,
+        logo: logoURL,
+        userId: user.uid,
         createdAt: new Date(),
-        userImage:profile.image,
-        userId: user.uid, // Include the user ID
-        name:profile.username,
-        postId:uuidv4()
       });
-  
-      toast.success("Post created successfully.");
-      
-      // Clear the input fields
-      setSelectedImage(null);
-      setDescription("");
+
+      toast.success("Job posted successfully.");
+      setShowJobModal(false);
+      setJobData({ title: "", company: "", location: "", description: "", logo: null });
     } catch (error) {
-      console.error("Error uploading post:", error);
-      toast.error("Error uploading post: " + error.message);
+      console.error("Error uploading job:", error);
+      toast.error("Error uploading job: " + error.message);
     }
   };
-  
-  
-  
 
   return (
     <div className="shadow-lg rounded-lg w-full bg-white p-4">
+      {/* Job Modal */}
+      {showJobModal && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-xl font-semibold mb-4">Post a Job</h2>
+            <input
+              type="text"
+              name="title"
+              placeholder="Job Title"
+              value={jobData.title}
+              onChange={handleJobInputChange}
+              className="w-full mb-2 p-2 border rounded"
+            />
+            <input
+              type="text"
+              name="company"
+              placeholder="Company Name"
+              value={jobData.company}
+              onChange={handleJobInputChange}
+              className="w-full mb-2 p-2 border rounded"
+            />
+            <input
+              type="text"
+              name="location"
+              placeholder="Location"
+              value={jobData.location}
+              onChange={handleJobInputChange}
+              className="w-full mb-2 p-2 border rounded"
+            />
+            <textarea
+              name="description"
+              placeholder="Job Description"
+              value={jobData.description}
+              onChange={handleJobInputChange}
+              className="w-full mb-2 p-2 border rounded"
+            />
+            <label htmlFor="job-logo" className="block mb-2">Upload Company Logo:</label>
+            <input
+              type="file"
+              id="job-logo"
+              accept="image/*"
+              onChange={handleJobFileChange}
+              className="mb-4"
+            />
+            <button
+              onClick={handleUploadJob}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Post Job
+            </button>
+            <button
+              onClick={() => setShowJobModal(false)}
+              className="bg-gray-400 text-white px-4 py-2 rounded ml-2 hover:bg-gray-500"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Post Options */}
       <div className="flex items-center gap-3 mb-4">
-        <img
-          className="w-10 h-10 rounded-full border-2"
-          src={props.image}
-          alt="User"
-        />
+        <img className="w-10 h-10 rounded-full border-2" src={props.image} alt="User" />
         <input
           type="text"
           placeholder="Start posting from here..."
@@ -106,7 +158,10 @@ const Create = (props) => {
           onChange={handleFileChange}
           className="hidden"
         />
-        <div className="job flex items-center gap-1 hover:text-blue-600 cursor-pointer transition duration-200">
+        <div
+          className="job flex items-center gap-1 hover:text-blue-600 cursor-pointer transition duration-200"
+          onClick={() => setShowJobModal(true)}
+        >
           <BsPersonWorkspace className="text-xl" />
           <p className="text-sm font-semibold">Job</p>
         </div>
@@ -115,24 +170,6 @@ const Create = (props) => {
           <p className="text-sm font-semibold">Write</p>
         </div>
       </div>
-      {selectedImage && (
-        <div className="mb-4">
-          <img src={selectedImage} alt="Uploaded" className="w-full h-auto rounded" />
-          <input
-            type="text"
-            placeholder="Describe your image..."
-            value={description}
-            onChange={handleDescriptionChange}
-            className="mt-2 border border-gray-300 rounded-lg w-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            onClick={handleUpload}
-            className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
-          >
-            Upload
-          </button>
-        </div>
-      )}
     </div>
   );
 };
