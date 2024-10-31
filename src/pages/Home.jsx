@@ -7,13 +7,12 @@ import { UserContext } from '../Context/context';
 import toast from 'react-hot-toast';
 
 const Home = () => {
-  const { user, profile, post, error } = useContext(UserContext); // Accessing user, profile, posts, and error from UserContext
+  const { user, profile, post, error, darkMode, toggleDarkMode } = useContext(UserContext); // Accessing darkMode and toggle function
   const loading = post === null; // Set loading based on post data availability
 
-  console.log("this is the profile yo", profile);
 
   return (
-    <div className="flex flex-col md:flex-row justify-center items-start gap-6 px-4 md:px-10 py-6 bg-gray-100 min-h-screen">
+    <div className={`flex flex-col md:flex-row justify-center items-start gap-6 px-4 md:px-10 py-6 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'} min-h-screen`}>
       <div className="w-full md:w-1/4">
         <Profile 
           userName={profile ? profile.username : "Loading..."} // Use profile data
@@ -21,10 +20,11 @@ const Home = () => {
           location={profile ? profile.location : "Loading..."} 
           bio={profile ? profile.description : "Loading..."} 
           profilePic={profile ? profile.image : "defaultProfilePic.jpg"} // Default image
+          darkMode={darkMode}
         />
       </div>
       <div className="w-full md:w-2/4">
-        <Create image={profile ? profile.image : "defaultProfilePic.jpg"} />
+        <Create darkMode={darkMode} image={profile ? profile.image : "defaultProfilePic.jpg"} />
         <div>
           {loading ? (
             <p>Loading posts...</p>
@@ -42,6 +42,7 @@ const Home = () => {
                 userImage={userposts.userImage}
                 username={userposts.name}
                 createdat={userposts.createdAt}
+                darkMode={darkMode}
               />
             ))
           )}
@@ -49,7 +50,7 @@ const Home = () => {
       </div>
       
       <div className="w-full md:w-1/4 hidden lg:block">
-        <TrendingNow />
+        <TrendingNow darkMode={darkMode}/>
       </div>
     </div>
   );

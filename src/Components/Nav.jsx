@@ -4,9 +4,10 @@ import { UserContext } from '../Context/context';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import toast from 'react-hot-toast';
+import { FaSun, FaMoon } from 'react-icons/fa';
 
 const Nav = () => {
-    const { user } = useContext(UserContext);
+    const { user, darkMode, toggleDarkMode } = useContext(UserContext); // Use darkMode from UserContext
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -23,37 +24,50 @@ const Nav = () => {
     };
 
     return (
-        <nav className="bg-white shadow-md">
+        <nav className={`shadow-md ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-700'}`}>
             <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
                 <h1 className="text-xl font-bold text-blue-600">LinkedIn Clone</h1>
                 <ul className="flex space-x-4">
                     <li>
-                        <Link to="/home" className="text-gray-700 hover:text-blue-600" aria-label="Home">
+                        <Link to="/home" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Home">
                             Home
                         </Link>
                     </li>
                     <li>
-                        <Link to="/profile" className="text-gray-700 hover:text-blue-600" aria-label="Profile">
+                        <Link to="/profile" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Profile">
                             Profile
                         </Link>
                     </li>
                     <li>
-                        <Link to="/posts" className="text-gray-700 hover:text-blue-600" aria-label="Posts">
+                        <Link to="/posts" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Posts">
                             Posts
                         </Link>
                     </li>
                     <li>
-                        <Link to="/jobs" className="text-gray-700 hover:text-blue-600" aria-label="Jobs">
+                        <Link to="/activity" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Activity">
+                            Activity
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/jobs" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Jobs">
                             Jobs
                         </Link>
                     </li>
                     <li>
-                        <Link to="/messages" className="text-gray-700 hover:text-blue-600" aria-label="Messages">
+                        <Link to="/myjobs" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="My Jobs">
+                            My Jobs
+                        </Link>
+                    </li>
+                    <li>
+                        <Link to="/messages" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Messages">
                             Messages
                         </Link>
                     </li>
                 </ul>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 items-center">
+                    <button onClick={toggleDarkMode} className="text-xl focus:outline-none" aria-label="Toggle Dark Mode">
+                        {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-500" />}
+                    </button>
                     {user && user.uid ? (
                         <button 
                             onClick={handleLogout} 

@@ -1,7 +1,8 @@
 import React, { useContext, useState } from 'react';
 import { auth,db } from '../../firebase.js';
 import { doc } from 'firebase/firestore';
-import { setDoc } from 'firebase/firestore';
+import { setDoc,getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 import { useNavigate } from "react-router-dom";
@@ -24,26 +25,35 @@ const Form = () => {
 
     const handleSignup = async (e) => {
         e.preventDefault();
-    
+
         try {
-            const user=await createUserWithEmailAndPassword(auth, email, password);
-            console.log(user)
-            toast.success("User created");
-            if(user){
-                await setDoc(doc(db,"Users",user.user.uid),{
-                    email:email,
-                    name:userName,
-                })
+            // Check if the username already exists in the Users collection
+            const usersRef = collection(db, "Users");
+            const q = query(usersRef, where("name", "==", userName));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                navigate('/'); // Redirect to homepage if username is taken
+                toast.error("Username taken. Please choose another one.");
+                return;
             }
-            // Optional: You might want to store additional user info here
+
+            // Proceed with creating the user account
+            const user = await createUserWithEmailAndPassword(auth, email, password);
+            console.log(user);
+            toast.success("User created");
+
+            if (user) {
+                await setDoc(doc(db, "Users", email), {
+                    email: email,
+                    name: userName,
+                });
+            }
+
         } catch (err) {
             toast.error(err.message.split("/").join(" ").split("-").join(" "));
-        }
-        finally{
-            navigate("/home")
-        }
+        } 
     };
-
     const handleLogin = async (e) => {
         e.preventDefault();
         try {

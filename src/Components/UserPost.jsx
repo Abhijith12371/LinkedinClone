@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { FaUserCircle, FaThumbsUp, FaCommentAlt, FaShare, FaPaperPlane } from "react-icons/fa";
 import { db } from "../../firebase";
-import { UserContext } from "../Context/context";
+import { UserContext } from "../Context/context"; // Adjust path as necessary
 import toast from "react-hot-toast";
 import { setDoc, doc, getDoc, addDoc, collection } from "firebase/firestore";
 import { onSnapshot } from "firebase/firestore";
@@ -11,9 +11,8 @@ const UserPost = (props) => {
   const [loading, setLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([]);
-  const { user,profile } = useContext(UserContext);
+  const { user, profile, darkMode } = useContext(UserContext);
 
-  // Format Firestore timestamp
   const formatTimestamp = (timestamp) => {
     if (timestamp && timestamp.seconds) {
       return new Date(timestamp.seconds * 1000).toLocaleDateString();
@@ -21,7 +20,6 @@ const UserPost = (props) => {
     return "Just now";
   };
 
-  // Handle like button
   async function handleLike() {
     if (loading) return;
     setLoading(true);
@@ -39,13 +37,12 @@ const UserPost = (props) => {
     } catch (err) {
       console.error("Error updating like:", err);
       toast.error("An error occurred while updating the like");
-      setLike(!updatedLikeState); // Revert like state if there’s an error
+      setLike(!updatedLikeState);
     } finally {
       setLoading(false);
     }
   }
 
-  // Fetch initial like status for the post
   useEffect(() => {
     const fetchLikedData = async () => {
       if (!user?.uid || !props.id) return;
@@ -63,7 +60,6 @@ const UserPost = (props) => {
     fetchLikedData();
   }, [user, props.id]);
 
-  // Fetch comments for the post
   useEffect(() => {
     const commentsCollection = collection(db, "posts", props.id, "comments");
     const unsubscribe = onSnapshot(commentsCollection, (snapshot) => {
@@ -71,10 +67,9 @@ const UserPost = (props) => {
       setComments(fetchedComments);
     });
 
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe();
   }, [props.id]);
 
-  // Add a comment
   const handleAddComment = async () => {
     if (!commentText.trim()) return;
     try {
@@ -85,7 +80,7 @@ const UserPost = (props) => {
         createdAt: new Date(),
       };
       await addDoc(collection(db, "posts", props.id, "comments"), newComment);
-      setCommentText(""); // Clear the input field
+      setCommentText("");
       toast.success("Comment added!");
     } catch (error) {
       console.error("Error adding comment:", error);
@@ -94,7 +89,7 @@ const UserPost = (props) => {
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg shadow-md p-4 mt-5 mb-6">
+    <div className={`max-w-xl mx-auto border ${darkMode ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'} rounded-lg shadow-md p-4 mt-5 mb-6`}>
       <div className="flex items-center mb-4">
         {props.userImage ? (
           <img
@@ -106,29 +101,22 @@ const UserPost = (props) => {
           <FaUserCircle className="text-gray-400 w-12 h-12 mr-3" />
         )}
         <div className="flex flex-col">
-          <span className="font-bold text-gray-800">
-            {props.username || "User"}
-          </span>
+          <span className="font-bold">{props.username || "User"}</span>
           <span className="text-sm text-gray-500">
             {formatTimestamp(props.createdat)} • 🌐
           </span>
         </div>
       </div>
 
-      {/* UserPost Content */}
       <div className="post-content">
-        <p className="text-gray-800 mb-4">{props.description}</p>
+        <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>{props.description}</p>
         <img
-          src={
-            props.image ||
-            "https://img.freepik.com/free-psd/minimalist-curriculum-instagram-post-template_23-2149363288.jpg?semt=ais_hybrid"
-          }
+          src={props.image || "https://img.freepik.com/free-psd/minimalist-curriculum-instagram-post-template_23-2149363288.jpg?semt=ais_hybrid"}
           alt="Post content"
           className="w-full rounded-lg mt-4"
         />
       </div>
 
-      {/* UserPost Actions */}
       <div className="flex justify-around pt-4 border-t border-gray-200 text-sm text-gray-600">
         <button
           className={`flex items-center ${like ? "text-blue-600" : ""}`}
@@ -152,17 +140,16 @@ const UserPost = (props) => {
         </button>
       </div>
 
-      {/* Comment Section */}
       <div className="mt-4">
         <h4 className="font-bold mb-2">Comments:</h4>
         {comments.length > 0 ? (
           comments.map((comment) => (
-            <div key={comment.id} className="mb-2">
+            <div key={comment.id} className={`mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
               <strong>{comment.username}:</strong> {comment.text}
             </div>
           ))
         ) : (
-          <p>No comments yet.</p>
+          <p className={darkMode ? 'text-gray-300' : 'text-gray-800'}>No comments yet.</p>
         )}
         <div className="flex mt-2">
           <input
@@ -170,11 +157,11 @@ const UserPost = (props) => {
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Add a comment..."
-            className="flex-1 p-2 border border-gray-300 rounded-lg"
+            className={`flex-1 p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
           />
           <button
             onClick={handleAddComment}
-            className="ml-2 px-3 py-2 bg-blue-600 text-white rounded-lg"
+            className={`ml-2 px-3 py-2 rounded-lg ${darkMode ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white'}`}
           >
             Post
           </button>

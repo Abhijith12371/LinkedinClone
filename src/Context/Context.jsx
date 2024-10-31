@@ -11,6 +11,11 @@ const Context = ({ children }) => {
   const [post, setPostData] = useState([]); // Posts data
   const [jobs, setJobsData] = useState([]); // Jobs data
   const [error, setError] = useState({ profile: null, post: null, jobs: null });
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check local storage for dark mode preference
+    const savedMode = localStorage.getItem("darkMode");
+    return savedMode === "true"; // Convert to boolean
+  });
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -26,6 +31,14 @@ const Context = ({ children }) => {
 
     return () => unsubscribeAuth();
   }, []);
+
+  const toggleDarkMode = () => {
+    setDarkMode(prevMode => {
+      const newMode = !prevMode;
+      localStorage.setItem("darkMode", newMode); // Save to local storage
+      return newMode;
+    });
+  };
 
   const fetchProfile = (uid) => {
     const profileDocRef = doc(db, "profile", uid);
@@ -70,25 +83,23 @@ const Context = ({ children }) => {
   };
 
   const fetchJobs = () => {
-    const jobsCollection = collection(db, "jobs"); // Reference the jobs collection
-  
+    const jobsCollection = collection(db, "jobs");
+
     const unsubscribeJobs = onSnapshot(
       jobsCollection,
       (snapshot) => {
         const jobsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  
-        setJobsData(jobsList); // Correctly update jobs state
+        setJobsData(jobsList);
         console.log(jobsList); // Log the fetched jobs to verify
       },
       (error) => {
         console.error("Error fetching jobs:", error);
-        setError((prev) => ({ ...prev, jobs: "Error fetching jobs data." })); // Update error key to jobs
+        setError((prev) => ({ ...prev, jobs: "Error fetching jobs data." }));
       }
     );
-  
+
     return unsubscribeJobs;
   };
-  
 
   useEffect(() => {
     let unsubscribeProfile, unsubscribePosts, unsubscribeJobs;
@@ -107,7 +118,7 @@ const Context = ({ children }) => {
   }, [user]);
 
   return (
-    <UserContext.Provider value={{ user, profile, post, jobs, error }}>
+    <UserContext.Provider value={{ user, profile, post, jobs, error, darkMode, toggleDarkMode }}>
       {children}
     </UserContext.Provider>
   );

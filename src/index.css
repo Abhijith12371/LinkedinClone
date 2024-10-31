@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* styles.css */
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  .bg-gray-900 {
+    background-color: #1a202c; /* Dark background */
+  }
+  
+  .bg-gray-100 {
+    background-color: #f7fafc; /* Light background */
+  }
+  
+  .text-white {
+    color: #ffffff; /* Light text */
+  }
+  
+  .text-gray-900 {
+    color: #1a202c; /* Dark text */
+  }
+  
+  /* Add other styles you need for dark mode */
+  
