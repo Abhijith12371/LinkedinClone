@@ -13,7 +13,7 @@ const MyJobs = () => {
     return <p className="text-gray-500">Please log in to view your posted jobs.</p>;
   }
 
-  if (error.jobs) {
+  if (error?.jobs) {
     return <p className="text-red-500">{error.jobs}</p>;
   }
 

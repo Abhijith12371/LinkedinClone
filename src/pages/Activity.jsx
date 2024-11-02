@@ -8,7 +8,7 @@ import { collection, getDocs, doc, getDoc, onSnapshot } from 'firebase/firestore
 const Activity = () => {
   const [view, setView] = useState("myPosts"); // toggle view: "myPosts" or "liked"
   const [posts, setPosts] = useState([]);
-  const { user } = useContext(UserContext);
+  const { user, darkMode } = useContext(UserContext);
 
   // Fetch the user's own posts
   const fetchMyPosts = async () => {
@@ -59,16 +59,16 @@ const Activity = () => {
   }, [view, user]);
 
   return (
-    <div>
+    <div className={`${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} min-h-screen p-4`}>
       <div className="flex justify-around mt-4 mb-6">
         <button
-          className={`px-4 py-2 ${view === "myPosts" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          className={`px-4 py-2 rounded-lg ${view === "myPosts" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
           onClick={() => setView("myPosts")}
         >
           My Posts
         </button>
         <button
-          className={`px-4 py-2 ${view === "liked" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          className={`px-4 py-2 rounded-lg ${view === "liked" ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
           onClick={() => setView("liked")}
         >
           Liked/Commented
@@ -77,7 +77,7 @@ const Activity = () => {
 
       <div>
         {posts.length === 0 ? (
-          <p>{view === "myPosts" ? "No posts uploaded yet" : "No liked/commented posts"}</p>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{view === "myPosts" ? "No posts uploaded yet" : "No liked/commented posts"}</p>
         ) : (
           posts.map(post => (
             <UserPost 
@@ -88,6 +88,7 @@ const Activity = () => {
               userImage={post.userImage}
               username={post.name}
               createdat={post.createdAt}
+              darkMode={darkMode} // pass darkMode to UserPost
             />
           ))
         )}

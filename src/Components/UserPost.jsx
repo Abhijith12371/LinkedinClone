@@ -11,6 +11,7 @@ const UserPost = (props) => {
   const [loading, setLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([]);
+  const [showMore, setShowMore] = useState(false); // State for showing more comments
   const { user, profile, darkMode } = useContext(UserContext);
 
   const formatTimestamp = (timestamp) => {
@@ -93,7 +94,7 @@ const UserPost = (props) => {
       <div className="flex items-center mb-4">
         {props.userImage ? (
           <img
-            className="w-12 h-12 rounded-full mr-3"
+            className="w-12 h-12 rounded-full mr-3 shadow-md"
             src={props.userImage}
             alt={`${props.username || "User"}'s profile`}
           />
@@ -142,26 +143,42 @@ const UserPost = (props) => {
 
       <div className="mt-4">
         <h4 className="font-bold mb-2">Comments:</h4>
-        {comments.length > 0 ? (
-          comments.map((comment) => (
-            <div key={comment.id} className={`mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-              <strong>{comment.username}:</strong> {comment.text}
-            </div>
-          ))
-        ) : (
-          <p className={darkMode ? 'text-gray-300' : 'text-gray-800'}>No comments yet.</p>
+        {comments.slice(0, showMore ? comments.length : 5).map((comment) => (
+          <div key={comment.id} className={`flex items-start mb-2 p-2 rounded-md ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'} shadow-sm`}>
+            <span className="font-bold mr-2">{comment.username}:</span>
+            <span>{comment.text}</span>
+          </div>
+        ))}
+        
+        {comments.length > 5 && !showMore && (
+          <button 
+            className={`text-blue-500 hover:underline mt-2`}
+            onClick={() => setShowMore(true)}
+          >
+            Load More
+          </button>
         )}
+
+        {showMore && comments.length > 5 && (
+          <button 
+            className={`text-blue-500 hover:underline mt-2`}
+            onClick={() => setShowMore(false)}
+          >
+            Show Less
+          </button>
+        )}
+
         <div className="flex mt-2">
           <input
             type="text"
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Add a comment..."
-            className={`flex-1 p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'}`}
+            className={`flex-1 p-2 rounded-lg ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-900 border-gray-300'} shadow-md`}
           />
           <button
             onClick={handleAddComment}
-            className={`ml-2 px-3 py-2 rounded-lg ${darkMode ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white'}`}
+            className={`ml-2 px-4 py-2 rounded-lg ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-400'} transition duration-300`}
           >
             Post
           </button>

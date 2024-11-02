@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebase";
-import { doc, collection, onSnapshot } from "firebase/firestore";
+import { doc, collection, onSnapshot, setDoc, getDoc } from "firebase/firestore";
 
 const UserContext = createContext();
 
@@ -10,7 +10,9 @@ const Context = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [post, setPostData] = useState([]); // Posts data
   const [jobs, setJobsData] = useState([]); // Jobs data
+  const [userData, setUserData] = useState({});
   const [error, setError] = useState({ profile: null, post: null, jobs: null });
+  const email=auth.currentUser?.email
   const [darkMode, setDarkMode] = useState(() => {
     // Check local storage for dark mode preference
     const savedMode = localStorage.getItem("darkMode");
@@ -42,8 +44,7 @@ const Context = ({ children }) => {
 
   const fetchProfile = (uid) => {
     const profileDocRef = doc(db, "profile", uid);
-
-    const unsubscribeProfile = onSnapshot(
+    return onSnapshot(
       profileDocRef,
       (docSnapshot) => {
         if (docSnapshot.exists()) {
@@ -60,46 +61,26 @@ const Context = ({ children }) => {
         setProfile(null);
       }
     );
-
-    return unsubscribeProfile;
   };
 
-  const fetchData = () => {
-    const postCollection = collection(db, "posts");
-
-    const unsubscribePosts = onSnapshot(
-      postCollection,
+  const fetchCollection = (collectionName, setData, setError) => {
+    const collectionRef = collection(db, collectionName);
+    return onSnapshot(
+      collectionRef,
       (snapshot) => {
-        const postList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setPostData(postList);
+        const dataList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setData(dataList);
+        setError(null); // Reset any existing error
       },
       (error) => {
-        console.error("Error fetching posts:", error);
-        setError((prev) => ({ ...prev, post: "Error fetching posts data." }));
+        console.error(`Error fetching ${collectionName}:`, error);
+        setError(`Error fetching ${collectionName} data.`);
       }
     );
-
-    return unsubscribePosts;
   };
 
-  const fetchJobs = () => {
-    const jobsCollection = collection(db, "jobs");
-
-    const unsubscribeJobs = onSnapshot(
-      jobsCollection,
-      (snapshot) => {
-        const jobsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setJobsData(jobsList);
-        console.log(jobsList); // Log the fetched jobs to verify
-      },
-      (error) => {
-        console.error("Error fetching jobs:", error);
-        setError((prev) => ({ ...prev, jobs: "Error fetching jobs data." }));
-      }
-    );
-
-    return unsubscribeJobs;
-  };
+  const fetchData = () => fetchCollection("posts", setPostData, setError);
+  const fetchJobs = () => fetchCollection("jobs", setJobsData, setError);
 
   useEffect(() => {
     let unsubscribeProfile, unsubscribePosts, unsubscribeJobs;
@@ -107,18 +88,48 @@ const Context = ({ children }) => {
     if (user) {
       unsubscribeProfile = fetchProfile(user.uid);
       unsubscribePosts = fetchData();
-      unsubscribeJobs = fetchJobs(); // Fetch jobs data
+      unsubscribeJobs = fetchJobs();
     }
 
     return () => {
       unsubscribeProfile && unsubscribeProfile();
       unsubscribePosts && unsubscribePosts();
       unsubscribeJobs && unsubscribeJobs();
+      fetchUserData();
     };
   }, [user]);
 
+  const updateProfile = async (uid, newProfileData) => {
+    try {
+      await setDoc(doc(db, "profile", uid), newProfileData, { merge: true });
+      // Update local profile state immediately
+      setProfile(prevProfile => ({ ...prevProfile, ...newProfileData }));
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setError((prev) => ({ ...prev, profile: "Error updating profile." }));
+    }
+  };
+  const fetchUserData = async () => {
+    if (email) {
+        try {
+            // Fetch the user document based on the user's email
+            const userDocRef = doc(db, "Users", email);
+            const userDoc = await getDoc(userDocRef);
+            console.log(userDoc.data())
+            if (userDoc.exists()) {
+                setUserData(userDoc.data());
+            } else {
+                console.log("No such document!");
+            }
+        } catch (error) {
+            console.error("Error fetching user data: ", error);
+        }
+    }
+};
+
+
   return (
-    <UserContext.Provider value={{ user, profile, post, jobs, error, darkMode, toggleDarkMode }}>
+    <UserContext.Provider value={{ user,userData,profile, post, jobs, error, darkMode, toggleDarkMode, updateProfile, fetchProfile }}>
       {children}
     </UserContext.Provider>
   );

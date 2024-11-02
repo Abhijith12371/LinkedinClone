@@ -4,7 +4,7 @@ import { UserContext } from "../Context/context";
 const JobList = () => {
   const { jobs, error, profile, darkMode } = useContext(UserContext); 
 
-  if (error.post) {
+  if (error?.post) {
     return <p className="text-red-500">{error.post}</p>; 
   }
 
@@ -16,7 +16,7 @@ const JobList = () => {
     <div className={`max-w-4xl mx-auto p-4 ${darkMode ? 'bg-gray-900 text-gray-300' : ""}`}>
       <h1 className="text-2xl font-bold mb-6">Job Listings</h1>
       <div className="space-y-4">
-        {jobs.map((job) => (
+        {jobs?.map((job) => (
           <div
             key={job.id}
             className={`flex items-start border rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`}

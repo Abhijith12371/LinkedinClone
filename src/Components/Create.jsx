@@ -10,7 +10,7 @@ import { UserContext } from "../Context/context";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 const Create = (props) => {
-  const { user, profile } = useContext(UserContext);
+  const { user, profile,userData } = useContext(UserContext);
   const [selectedImage, setSelectedImage] = useState(null);
   const [description, setDescription] = useState("");
   const [showJobModal, setShowJobModal] = useState(false);
@@ -127,7 +127,7 @@ const Create = (props) => {
       )}
 
       <div className="flex items-center gap-3 mb-4">
-        <img className="w-10 h-10 rounded-full border-2" src={profile.image} alt="User" /> {/* Updated to use profile image */}
+        <img className="w-10 h-10 rounded-full border-2" src={userData?.profilePic} alt="User" /> {/* Updated to use profile image */}
         <input type="text" placeholder="Start posting from here..." value={postContent} onChange={(e) => setPostContent(e.target.value)} className={`flex-grow p-2 rounded-lg focus:outline-none ${props.darkMode ? "bg-gray-700 text-white" : "border border-gray-300"}`} />
         <button onClick={handleUploadPost} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Post</button>
       </div>
