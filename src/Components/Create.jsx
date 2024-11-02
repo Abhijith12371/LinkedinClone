@@ -59,9 +59,9 @@ const Create = (props) => {
   
       await setDoc(postRef, {
         image: imageUrl,
-        name: profile.username,
+        name: userData.name,
         description: postContent,
-        userImage: profile.image,
+        userImage: userData.profilePic,
         userId: user.uid,
         createdAt: new Date(),
       });
@@ -94,7 +94,7 @@ const Create = (props) => {
       const jobRef = doc(db, "jobs", uuidv4());
       await setDoc(jobRef, {
         ...jobData,
-        logo: profile.image,
+        logo: userData?.profilePic,
         userId: user.uid,
         link,
         createdAt: new Date(),

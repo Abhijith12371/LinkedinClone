@@ -6,7 +6,6 @@ import Nav from "./Components/Nav";
 import Home from "./pages/Home";
 import UserPosts from "./pages/UserPosts";
 import JobList from "./Components/Jobs";
-import Messaging from "./Components/Messaging";
 import ProfileSetUp from "./pages/ProfileSetUp";
 import { UserContext } from "./Context/context";
 import MyJobs from "./pages/MyJobs";

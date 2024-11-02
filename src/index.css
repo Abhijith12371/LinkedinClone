@@ -39,6 +39,44 @@ body {
   }
 }
 
+/* Add this CSS to your global styles or Tailwind CSS file */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a0aec0 #edf2f7; /* scrollbar color for light mode */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #edf2f7; /* background for light mode */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #a0aec0; /* thumb color */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0; /* thumb hover color */
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  .custom-scrollbar {
+    scrollbar-color: #4a5568 #2d3748; /* scrollbar color for dark mode */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #2d3748; /* background for dark mode */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4a5568; /* thumb color for dark mode */
+  }
+}
+
   
   /* Add other styles you need for dark mode */
   

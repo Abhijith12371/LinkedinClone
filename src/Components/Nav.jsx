@@ -1,14 +1,39 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../Context/context';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { auth, db } from '../../firebase';
 import toast from 'react-hot-toast';
-import { FaSun, FaMoon } from 'react-icons/fa';
+import { FaSun, FaMoon, FaBell } from 'react-icons/fa';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 const Nav = () => {
-    const { user, darkMode, toggleDarkMode } = useContext(UserContext); // Use darkMode from UserContext
+    const { user, darkMode, toggleDarkMode, setNewMessageNotification } = useContext(UserContext);
+    const [unreadMessages, setUnreadMessages] = useState(0);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user) {
+            const chatId = user.email; // or user.uid depending on your setup
+            const messagesRef = collection(db, "messages");
+
+            const q = query(
+                messagesRef, 
+                where("receiverEmail", "==", chatId), 
+                where("read", "==", false)
+            );
+
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const unreadCount = snapshot.docs.length;
+                setUnreadMessages(unreadCount);
+                console.log(`Unread messages count: ${unreadCount}`); // Debugging line
+            }, (error) => {
+                console.error("Error fetching unread messages:", error); // Error handling
+            });
+
+            return () => unsubscribe();
+        }
+    }, [user]);
 
     const handleLogout = () => {
         signOut(auth)
@@ -20,7 +45,12 @@ const Nav = () => {
                 console.error("Logout Error:", error);
                 toast.error("Failed to log out. Please try again.");
             });
-        console.log("User logged out");
+    };
+
+    const handleNotificationClick = () => {
+        setUnreadMessages(0); // Reset unread messages count
+        setNewMessageNotification(false); // Reset notification state
+        navigate("/messages"); // Navigate to the messages page
     };
 
     return (
@@ -28,46 +58,29 @@ const Nav = () => {
             <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
                 <h1 className="text-xl font-bold text-blue-600">LinkedIn Clone</h1>
                 <ul className="flex space-x-4">
-                    <li>
-                        <Link to="/home" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Home">
-                            Home
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/profile" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Profile">
-                            Profile
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/posts" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Posts">
-                            Posts
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/activity" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Activity">
-                            Activity
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/jobs" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Jobs">
-                            Jobs
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/myjobs" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="My Jobs">
-                            My Jobs
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="/messages" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Messages">
-                            Messages
-                        </Link>
-                    </li>
+                    <li><Link to="/home" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Home">Home</Link></li>
+                    <li><Link to="/profile" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Profile">Profile</Link></li>
+                    <li><Link to="/posts" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Posts">Posts</Link></li>
+                    <li><Link to="/activity" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Activity">Activity</Link></li>
+                    <li><Link to="/jobs" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Jobs">Jobs</Link></li>
+                    <li><Link to="/myjobs" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="My Jobs">My Jobs</Link></li>
+                    <li><Link to="/messages" className={`hover:text-blue-600 ${darkMode ? 'text-white' : 'text-gray-700'}`} aria-label="Messages">Messages</Link></li>
                 </ul>
                 <div className="flex space-x-2 items-center">
+                    {/* Notification Icon */}
+                    <div className="relative" onClick={handleNotificationClick}>
+                        <FaBell className="text-2xl cursor-pointer" aria-label="Unread Messages Notification" />
+                        {unreadMessages > 0 && (
+                            <span className="absolute top-0 right-0 inline-flex items-center justify-center p-1 h-4 w-4 text-xs text-white bg-red-500 rounded-full">
+                                {unreadMessages}
+                            </span>
+                        )}
+                    </div>
+
                     <button onClick={toggleDarkMode} className="text-xl focus:outline-none" aria-label="Toggle Dark Mode">
                         {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-500" />}
                     </button>
+
                     {user && user.uid ? (
                         <button 
                             onClick={handleLogout} 
@@ -78,20 +91,8 @@ const Nav = () => {
                         </button>
                     ) : (
                         <>
-                            <Link
-                                to="/"
-                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
-                                aria-label="Login"
-                            >
-                                Login
-                            </Link>
-                            <Link
-                                to="/register"
-                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
-                                aria-label="Register"
-                            >
-                                Register
-                            </Link>
+                            <Link to="/" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500" aria-label="Login">Login</Link>
+                            <Link to="/register" className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300" aria-label="Register">Register</Link>
                         </>
                     )}
                 </div>

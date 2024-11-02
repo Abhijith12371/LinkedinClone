@@ -1,10 +1,9 @@
-// Users.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import { db } from '../../firebase'; // Your Firebase config
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { UserContext } from '../Context/context';
 
-const Users = ({ onSelectUser }) => {
+const Users = ({ onSelectUser, unreadUsers }) => {
   const { user, darkMode } = useContext(UserContext);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -22,7 +21,7 @@ const Users = ({ onSelectUser }) => {
         const usersList = usersSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
-        })).filter(u => u.id !== user.uid); // Exclude current user
+        })).filter(u => u?.id !== user?.uid); // Exclude current user
         setUsers(usersList);
         setFilteredUsers(usersList);
       } catch (error) {
@@ -71,13 +70,18 @@ const Users = ({ onSelectUser }) => {
             onClick={() => handleUserClick(u)}
             className={`flex items-center p-2 mb-2 cursor-pointer rounded-lg hover:bg-gray-200 ${darkMode ? 'hover:bg-gray-700' : ''}`}
           >
-            {u.profilePic ? (
-              <img src={u.profilePic} alt="Profile" className="w-10 h-10 rounded-full mr-3" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-500 mr-3 flex items-center justify-center text-white">
-                {u.name.charAt(0)}
-              </div>
-            )}
+            <span className="relative">
+              {u.profilePic ? (
+                <img src={u.profilePic} alt="Profile" className="w-10 h-10 rounded-full mr-3" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-500 mr-3 flex items-center justify-center text-white">
+                  {u.name.charAt(0)}
+                </div>
+              )}
+              {unreadUsers[u.email] && (
+                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
+              )}
+            </span>
             <div>
               <p className="font-semibold">{u.name}</p>
               <p className="text-sm text-gray-600">{u.email}</p>
