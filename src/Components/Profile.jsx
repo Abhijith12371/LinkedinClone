@@ -64,11 +64,11 @@ const Profile = ({ darkMode }) => {
             </div>
 
             {/* Profile Bio */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
                 <p className={darkMode ? 'text-gray-300' : 'text-gray-800'}>
                     {userData.bio || "This is your bio. You can talk about your skills, experience, and more here."}
                 </p>
-            </div>
+            </div> */}
 
             {/* Edit Profile Button */}
             <div className="text-right">
